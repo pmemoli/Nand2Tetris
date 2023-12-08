@@ -1,0 +1,11 @@
+// 00 then {in, 0, 0, 0}, 01 then {0, in, ...} ...
+
+CHIP DMux4Way {
+    IN in, sel[2];
+    OUT a, b, c, d, e, f, g, h;
+
+    PARTS:
+    DMux(in=in, sel=sel[2], a=muxabcd, b=muxefgh);
+    DMux4Way(in=muxabcd, sel=sel[0..1], a=a, b=b, c=c, d=d);
+    DMux4Way(in=muxefgh, sel=sel[0..1], a=e, b=f, c=g, d=h);
+}

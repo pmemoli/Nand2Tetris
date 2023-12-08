@@ -1,0 +1,10 @@
+// Takes 16 bits buses and applies the not operation for each bit
+
+CHIP Not16 {
+    IN in[16];
+    OUT out[16];
+
+    PARTS:
+    Not8(in=in[0..7], out=out[0..7]);
+    Not8(in=in[8..15], out=out[8..15]);
+}

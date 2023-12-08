@@ -1,0 +1,10 @@
+// Takes 16 bits buses and applies the or operation for each bit
+
+CHIP Or16 {
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+    Or8(a=a[0..7], b=b[0..7], out=out[0..7]);
+    Or8(a=a[8..15], b=b[8..15], out=out[8..15]);
+}
