@@ -39,37 +39,44 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // A Register
-    Not(in=instruction[15], out=aInstruction)
-    Mux16(a=aluOutput, b=instruction, sel=aInstruction, out=aOrAluOutput)
+    // Instruction type
+    Not(in=instruction[15], out=aInstruction);
+    Not(in=aInstruction, out=cInstruction);
 
-    Or16(a=aInstruction, b=instruction[5], out=loadARegister)
-    Register(in=aOrAluOutput, load=loadARegister, out=aRegister)
+    // A Register
+    And(a=cInstruction, b=instruction[5], out=aluSel);
+    Mux16(a=instruction, b=aluOutput, sel=aluSel, out=aOrAluOutput);
+
+    Or(a=aInstruction, b=aluSel, out=loadARegister);
+    ARegister(in=aOrAluOutput, load=loadARegister, out=aRegister);
 
     // D Register
-    And(a=1, b=instruction[4], out=loadDRegister)
-    Register(in=aluOutput, load=loadDRegister, out=dRegister)
+    And(a=cInstruction, b=instruction[4], out=loadDRegister);
+    DRegister(in=aluOutput, load=loadDRegister, out=dRegister);
 
     // ALU
-    Mux16(a=inM, b=aRegister, sel=instruction[12], out=aOrM)
+    Mux16(a=aRegister, b=inM, sel=instruction[12], out=aOrM);
     ALU(x=dRegister, y=aOrM, zx=instruction[11], nx=instruction[10],
     zy=instruction[9], ny=instruction[8], f=instruction[7],
-    no=instruction[6], out=aluOutput, zr=zr, ng=ng)
-    Or16(a=false, b=aluOutput, out=outM)
+    no=instruction[6], out=aluOutput, zr=zr, ng=ng);
 
     // WriteM Bits
-    Or16(a=false, b=aRegister, out[0..14]=addressM)
-    And16(a=true, b=instruction[3], out=writeM)
+    Or16(a=false, b=aluOutput, out=outM);
+    Or16(a=false, b=aRegister, out[0..14]=addressM);
+    And(a=cInstruction, b=instruction[3], out=writeM);
 
     // PC
-    And(a=ng, b=instruction[2], out=negJump)
-    And(a=zr, b=instruction[1], out=zeroJump)
-    Not(in=ng, out=ps)
-    And(a=ps, b=instruction[0], out=posJump)
-    Or(a=negJump, b=zeroJump, out=loadPC1)
-    Or(a=loadPC1, b=posJump, out=loadPC)
-    Not(a=loadPC, out=inc)
+    Or(a=zr, b=ng, out=zeroOrNeg);
+    Not(in=zeroOrNeg, out=ps);
 
-    PC(in=aRegister, load=loadPC, reset=reset, inc=inc, out=pc)
+    And(a=ng, b=instruction[2], out=negJump);
+    And(a=zr, b=instruction[1], out=zeroJump);
+    And(a=ps, b=instruction[0], out=posJump);
+    Or(a=negJump, b=zeroJump, out=loadPC1);
+    Or(a=loadPC1, b=posJump, out=jumpToA);
+    And(a=jumpToA, b=cInstruction, out=loadPC); // Only jump if C Instruction
+    Not(in=loadPC, out=inc);
+
+    PC(in=aRegister, load=loadPC, reset=reset, inc=inc, out[0..14]=pc);
 }
 
