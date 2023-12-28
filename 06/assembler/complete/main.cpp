@@ -96,10 +96,12 @@ class Parser {
             else return "C_COMMAND";
         }
 
-        string address() {
-            int decimalAddress = stoi(currentLine.substr(1));
-            bitset<15> bs(decimalAddress);
-            return bs.to_string();
+        string symbol() {
+            string addressData = currentLine.substr(1); 
+            if (addressData[addressData.size() - 1] == ')') {
+                return addressData.substr(0, addressData.size() - 1);
+            }
+            else return addressData;
         }
 
         string dest() {return computeParser.dest();}
@@ -107,6 +109,11 @@ class Parser {
         string comp() {return computeParser.comp();}
 
         string jump() {return computeParser.jump();}
+
+        void resetParser() {
+            inputStream.clear();
+            inputStream.seekg(0);
+        }
 
     private:
         ifstream& inputStream;
@@ -129,30 +136,69 @@ class Parser {
 };
 
 int main() {
-    ifstream inputFile("input.txt");
-    ofstream outputFile("output.txt");
+    ifstream inputFile("test/max/Max.asm");
+    ofstream outputFile("output.hack");
+    map<string, string> symbolTable;
 
+    Parser parser(inputFile);
+
+    // First pass
+    int codeLine = 0;
+    getMapFromFile("predefined", symbolTable);
+
+    do {
+        bool whitespaceEnding = parser.advance();
+        if (whitespaceEnding) break;
+
+        string commandType = parser.commandType();
+        if (commandType == "L_COMMAND") {
+            string symbol = parser.symbol();
+
+            if (symbolTable.count(symbol) == 0) {
+                symbolTable[symbol] = to_string(codeLine);
+            }
+        }
+        else codeLine++;
+    } while (parser.hasMoreCommands());
+
+    parser.resetParser();
+
+    // Second pass
     getMapFromFile("compMap", compMap);
     getMapFromFile("destMap", destMap);
     getMapFromFile("jumpMap", jumpMap);
 
-    Parser parser(inputFile);
+    int variablePos = 16;
     do {
         bool whitespaceEnding = parser.advance();
         if (whitespaceEnding) break;
 
         if (parser.commandType() == "C_COMMAND") {
             outputFile << "111";
-            outputFile << parser.dest();
             outputFile << parser.comp();
+            outputFile << parser.dest();
             outputFile << parser.jump();
         }
-        else {
+        else if (parser.commandType() == "A_COMMAND") {
+            string symbol = parser.symbol();
+
             outputFile << '0';
-            outputFile << parser.address();
+            if (isdigit(symbol[0]) == 0) {
+                if (symbolTable.count(symbol) == 0) {
+                    symbolTable[symbol] = variablePos;
+                    variablePos++;
+                }
+
+                bitset<15> bs(stoi(symbolTable[symbol]));
+                outputFile << bs.to_string();
+            }
+            else {
+                bitset<15> bs(stoi(symbol));
+                outputFile << bs.to_string();
+            }
         }
 
-        outputFile << endl;
+        if (parser.commandType() != "L_COMMAND") outputFile << endl;
 
     } while (parser.hasMoreCommands());
 
