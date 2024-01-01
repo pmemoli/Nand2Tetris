@@ -1,0 +1,13 @@
+command push constant
+// Saves constant to D
+@X
+D=A
+// Sets A to SP value
+@SP
+A=M
+// Sets ram[pointeraddress] to the constant 
+M=D
+// Increases SP by one
+@SP
+M=M+1
+

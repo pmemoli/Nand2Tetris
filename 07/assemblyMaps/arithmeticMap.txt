@@ -1,0 +1,146 @@
+command add
+// Decreases SP value by one and sets address to it
+@SP
+AM=M-1
+// Stores the last element of the stack in D
+D=M
+// Stores addition in the top of the stack
+A=A-1
+M=M+D
+
+command sub
+// Decreases SP value by one and sets address to it
+@SP
+AM=M-1
+// Stores the last element of the stack in D
+D=M
+// Stores substraction in the top of the stack
+A=A-1
+M=M-D
+
+command neg
+@SP
+A=M-1
+M=-M
+
+command eq
+// Decreases SP value by one and sets address to it
+@SP
+AM=M-1
+// Stores the last element of the stack in D
+D=M
+// Stores substraction in D
+A=A-1
+D=M-D
+
+@EQUALX
+D;JEQ
+
+@NOTEQUALX
+0;JMP
+
+(EQUALX)
+
+@SP
+A=M-1
+M=-1
+
+@ENDX
+0;JMP
+
+(NOTEQUALX)
+@SP
+A=M-1
+M=0
+
+(ENDX)
+
+command gt
+// Decreases SP value by one and sets address to it
+@SP
+AM=M-1
+// Stores the last element of the stack in D
+D=M
+// Stores substraction in D
+A=A-1
+D=M-D
+
+@GREATERX
+D;JGT
+
+@NOTGREATERX
+0;JMP
+
+(GREATERX)
+
+@SP
+A=M-1
+M=-1
+
+@ENDX
+0;JMP
+
+(NOTGREATERX)
+@SP
+A=M-1
+M=0
+
+(ENDX)
+
+command lt
+// Decreases SP value by one and sets address to it
+@SP
+AM=M-1
+// Stores the last element of the stack in D
+D=M
+// Stores substraction in D
+A=A-1
+D=M-D
+
+@LESSTHANX
+D;JLT
+
+@NOTLESSTHANX
+0;JMP
+
+(LESSTHANX)
+
+@SP
+A=M-1
+M=-1
+
+@ENDX
+0;JMP
+
+(NOTLESSTHANX)
+@SP
+A=M-1
+M=0
+
+(ENDX)
+
+command and
+// Decreases SP value by one and sets address to it
+@SP
+AM=M-1
+// Stores the last element of the stack in D
+D=M
+// Stores and-operation in the top of the stack
+A=A-1
+M=M&D
+
+command or
+// Decreases SP value by one and sets address to it
+@SP
+AM=M-1
+// Stores the last element of the stack in D
+D=M
+// Stores or-operation in the top of the stack
+A=A-1
+M=M|D
+
+command not
+@SP
+A=M-1
+M=!M
+

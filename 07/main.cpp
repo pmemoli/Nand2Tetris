@@ -17,8 +17,6 @@ void assemblyMap(const string& filename, map<string, string>& commandMap) {
     while (getline(file, line)) {
         if (line.substr(0, 7) == "command") {
             if (key.size() > 0) {
-                value.pop_back();
-
                 commandMap[key] = value;
                 value = "";
             }
@@ -30,8 +28,6 @@ void assemblyMap(const string& filename, map<string, string>& commandMap) {
             value += line + "\n";
         }
     }
-
-    value.pop_back();
 
     commandMap[key] = value;
 }
@@ -137,15 +133,17 @@ class CodeWriter {
             outputStream << assemblyCode;
         }
 
-        void close() {outputStream.close();}
+        void end() {
+            outputStream.close();
+        }
 
     private:
         ofstream& outputStream;
 };
 
 int main() {
-    ifstream vmFile("input.txt");
-    ifstream asmFile("output.txt");
+    ifstream vmFile("input.vm");
+    ofstream asmFile("output.asm");
 
     Parser parser(vmFile);
     CodeWriter writer(asmFile);
@@ -153,9 +151,27 @@ int main() {
     assemblyMap("arithmeticMap", arithmeticMap);
     assemblyMap("memoryMap", memoryMap);
 
+    int commandNumber = 0;
     do {
         bool whitespaceEnding = parser.advance();
+
+        string commandType = parser.commandType();
+
+        string command = parser.command();
+        string arg1 = parser.arg1();
+        int arg2 = parser.arg2();
+
+        if (commandType == "C_ARITHMETIC") {
+            writer.writeArithmetic(command, commandNumber);
+        }
+        else if (commandType == "C_PUSH" || command == "C_PULL") {
+            writer.writePushPop(command, arg1, arg2);
+        }
+
+        commandNumber++;
     } while (parser.hasMoreCommands());
+
+    writer.end();
 
     return 0;
 }
