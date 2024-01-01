@@ -1,0 +1,6 @@
+command push constant
+@X
+D=A
+@SP
+M=D
+

@@ -1,9 +1,40 @@
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
-#include <algorithm>
+#include <regex>
+#include <map>
 using namespace std;
+
+map<string, string> arithmeticMap;
+map<string, string> memoryMap;
+
+void assemblyMap(const string& filename, map<string, string>& commandMap) {
+    ifstream file("assemblyMaps/" + filename + ".txt");
+    string line, key, value;
+
+    while (getline(file, line)) {
+        if (line.substr(0, 7) == "command") {
+            if (key.size() > 0) {
+                value.pop_back();
+
+                commandMap[key] = value;
+                value = "";
+            }
+
+            key = line.substr(8);
+        }
+
+        else {
+            value += line + "\n";
+        }
+    }
+
+    value.pop_back();
+
+    commandMap[key] = value;
+}
 
 class Parser {
     public:
@@ -72,9 +103,7 @@ class Parser {
 
                     if (foundComponents == 0) command_ = tempString;
                     if (foundComponents == 1) arg1_ = tempString;
-                    if (foundComponents == 2) {
-                        arg2_ = stoi(tempString);
-                    }
+                    if (foundComponents == 2) arg2_ = stoi(tempString);
 
                     foundComponents++;
                     tempString = "";
@@ -93,24 +122,20 @@ class CodeWriter {
 
         void setFileName(string fileName) {}
 
-        void writeArithmetic(string command) {
-            /* "add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not" */
-            string assemblyCode = "";
+        void writeArithmetic(string command, int commandNumber) {
+            string assemblyCode = arithmeticMap[command];
+            assemblyCode = regex_replace(assemblyCode, regex("X"), to_string(commandNumber));
 
-            if (command == "add") {
-                assemblyCode = 
-                    "
-                    @SP
-                    D=M
-                    @0
-
-                    ";
-            }
-
-            outputStream >> assemblyCode >> endl;
+            outputStream << assemblyCode;
         }
 
-        void writePushPop(string command, string segment, int index) {}
+        void writePushPop(string command, string segment, int index) {
+            string key = command + " " + segment;
+            string assemblyCode = memoryMap[key];
+            assemblyCode = regex_replace(assemblyCode, regex("X"), to_string(index));
+
+            outputStream << assemblyCode;
+        }
 
         void close() {outputStream.close();}
 
@@ -120,14 +145,16 @@ class CodeWriter {
 
 int main() {
     ifstream vmFile("input.txt");
+    ifstream asmFile("output.txt");
+
     Parser parser(vmFile);
+    CodeWriter writer(asmFile);
+
+    assemblyMap("arithmeticMap", arithmeticMap);
+    assemblyMap("memoryMap", memoryMap);
 
     do {
         bool whitespaceEnding = parser.advance();
-
-        cout << parser.commandType() << endl;
-        cout << parser.command() << " " << parser.arg1() << " " << parser.arg2() << endl;
-
     } while (parser.hasMoreCommands());
 
     return 0;
