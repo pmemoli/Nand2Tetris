@@ -114,7 +114,9 @@ class Parser {
 
 class CodeWriter {
     public:
-        CodeWriter(ofstream& outputFile) : outputStream(outputFile) {}
+        CodeWriter(ofstream& outputFile, string filename) : outputStream(outputFile) {
+            fileName = filename;
+        }
 
         void setFileName(string fileName) {}
 
@@ -128,25 +130,38 @@ class CodeWriter {
         void writePushPop(string command, string segment, int index) {
             string key = command + " " + segment;
             string assemblyCode = memoryMap[key];
+
+            if (segment == "static") {
+                assemblyCode = regex_replace(assemblyCode, regex("Xxx"), fileName);
+            }
             assemblyCode = regex_replace(assemblyCode, regex("X"), to_string(index));
 
             outputStream << assemblyCode;
         }
 
         void end() {
-            outputStream.close();
+            string assemblyCode = 
+                "(ENDPROGRAM)\n"
+                "@ENDPROGRAM\n"
+                "0;JMP";
+
+            outputStream << assemblyCode;
         }
 
     private:
         ofstream& outputStream;
+        string fileName;
 };
 
 int main() {
-    ifstream vmFile("input.vm");
-    ofstream asmFile("output.asm");
+    string pathName = "memoryTests/StaticTest/"; 
+    string fileName = "StaticTest";
+
+    ifstream vmFile(pathName + fileName + ".vm");
+    ofstream asmFile(pathName + fileName + ".asm");
 
     Parser parser(vmFile);
-    CodeWriter writer(asmFile);
+    CodeWriter writer(asmFile, fileName);
 
     assemblyMap("arithmeticMap", arithmeticMap);
     assemblyMap("memoryMap", memoryMap);
@@ -164,7 +179,7 @@ int main() {
         if (commandType == "C_ARITHMETIC") {
             writer.writeArithmetic(command, commandNumber);
         }
-        else if (commandType == "C_PUSH" || command == "C_PULL") {
+        else if (commandType == "C_PUSH" || commandType == "C_POP") {
             writer.writePushPop(command, arg1, arg2);
         }
 
@@ -172,6 +187,9 @@ int main() {
     } while (parser.hasMoreCommands());
 
     writer.end();
+
+    vmFile.close();
+    asmFile.close();
 
     return 0;
 }

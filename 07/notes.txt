@@ -24,7 +24,9 @@ The stack machine can be implemented thorugh:
 - Mapping the structure of the VM (stack and memory) on the target platform.
 - Providing a translator that converts VM commands into target platform commands that operate on the mapped structure. 
 
-The translator thus acts as an implementation of the virtual machine by running the commands on a stack and heap (memory of the VM) mapped on the target platform.
+The translator implements the structure of the VM in the target platform and translates the instructions of a program into hack assembly operating on the emulated vm.
+
+The resulting code acts as an implementation of the VM and a specific VM program on the target platform.
 
 Mapping:
 
