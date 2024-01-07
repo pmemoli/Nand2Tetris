@@ -1,14 +1,11 @@
 #include <algorithm>
-#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <regex>
 #include <map>
-
 using namespace std;
-namespace fs = std::filesystem;
 
 map<string, string> arithmeticMap;
 map<string, string> functionMap;
@@ -173,7 +170,7 @@ class CodeWriter {
 
         void writeCall(string functionName, int numArgs) {
             string assemblyCode = functionMap["call"];
-            string returnName = "return-address-" + functionName
+            string returnName = "return-address-" + functionName;
             assemblyCode = regex_replace(assemblyCode, regex("function"), functionName);
             assemblyCode = regex_replace(assemblyCode, regex("return-address"), returnName);
 
@@ -251,7 +248,9 @@ void processFile(CodeWriter& writer, string filePath) {
 
 int main() {
     // Setup
-    ofstream asmFile(pathName + fileName + ".asm");
+    string programPath = "tests/function/FibonacciElement/";
+    string fileName = "FibonacciElement";
+    ofstream asmFile(programPath + fileName + ".asm");
 
     CodeWriter writer(asmFile, fileName);
 
@@ -263,11 +262,11 @@ int main() {
     // Translate a vm program into an asm file
     writer.writeInit();
 
-    string programPath = "tests/function/FibonacciElement";
-    for (const auto& entry : fs::directory_iterator(programPath)) {
-        string filePath = entry.path();
+    vector<string> vmFiles = {"Sys.vm", "Main.vm"};
+    for (int i = 0; i < vmFiles.size(); i++) {
+        string filePath = vmFiles[i];
         if (filePath.substr(filePath.size() - 3) == ".vm") {
-            processFile(writer, filePath);
+            processFile(writer, programPath + filePath);
         }
     }
 

@@ -2,7 +2,6 @@ command function
 (function)
 
 command call
-
 // push return-address
 @return-address
 D=A  // stores address in D
@@ -70,7 +69,6 @@ M=D
 (return-address)
 
 command return
-
 // FRAME = LCL
 @LCL
 D=M
