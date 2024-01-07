@@ -78,12 +78,71 @@ D=M
 M=D
 
 // RET = *(FRAME-5)  // saves return address to a temp var.
+@5
+D=A
+@R13
+D=M-D
+@R14
+M=D
 
 // *ARG = pop()  // sets the topmost value in the stack to the start of the argument segment
+@ARG
+D=M  // stores arg + 0 address in D 
+@R13
+M=D  // stores arg + 0 in ram[13]
+@SP
+AM=M-1
+D=M  // decreases sp and saves ram[spval] to D
+@R13
+A=M
+M=D  // pushes top of stack to ram[arg + x]
 
 // SP = ARG + 1
+@ARG
+D=M+1
+@SP
+M=D
 
-// RESTORING POINTERS 
+// THIS = *(FRAME-1)
+@1
+D=A
+@R13
+D=M-D
+@THIS
+M=D
+
+// THAT = *(FRAME-2)
+@2
+D=A
+@R13
+D=M-D
+@THAT
+M=D
+
+// ARG = *(FRAME-3)
+@3
+D=A
+@R13
+D=M-D
+@ARG
+M=D
+
+// LCL = *(FRAME-4)
+@4
+D=A
+@R13
+D=M-D
+@LCL
+M=D
 
 // goto RET
+@R14
+A=M
+0;JMP
+
+command init
+@256
+D=A
+@SP
+M=D
 

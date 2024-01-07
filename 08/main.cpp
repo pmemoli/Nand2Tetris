@@ -1,11 +1,14 @@
 #include <algorithm>
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <regex>
 #include <map>
+
 using namespace std;
+namespace fs = std::filesystem;
 
 map<string, string> arithmeticMap;
 map<string, string> functionMap;
@@ -158,7 +161,35 @@ class CodeWriter {
         }
 
         void writeFunction(string functionName, int numLocals) {
+            string assemblyCode = functionMap["function"];
+            assemblyCode = regex_replace(assemblyCode, regex("function"), functionName);
 
+            outputStream << assemblyCode;
+            
+            for (int i = 0; i < numLocals; i++) {
+                writePushPop("push", "constant", 0);
+            }
+        }
+
+        void writeCall(string functionName, int numArgs) {
+            string assemblyCode = functionMap["call"];
+            string returnName = "return-address-" + functionName
+            assemblyCode = regex_replace(assemblyCode, regex("function"), functionName);
+            assemblyCode = regex_replace(assemblyCode, regex("return-address"), returnName);
+
+            outputStream << assemblyCode;
+        }
+
+        void writeReturn() {
+            string assemblyCode = functionMap["return"];
+            outputStream << assemblyCode;
+        }
+
+        void writeInit() {
+            string assemblyCode = functionMap["init"]; 
+            outputStream << assemblyCode;
+
+            writeCall("Sys.init", 0);
         }
 
     private:
@@ -173,20 +204,9 @@ class CodeWriter {
         }
 };
 
-int main() {
-    string pathName = "tests/flow/FibonacciSeries/"; 
-    string fileName = "FibonacciSeries";
-
-    ifstream vmFile(pathName + fileName + ".vm");
-    ofstream asmFile(pathName + fileName + ".asm");
-
+void processFile(CodeWriter& writer, string filePath) {
+    ifstream vmFile(filePath);
     Parser parser(vmFile);
-    CodeWriter writer(asmFile, fileName);
-
-    assemblyMap("arithmeticMap", arithmeticMap);
-    assemblyMap("memoryMap", memoryMap);
-    assemblyMap("flowMap", flowMap);
-    assemblyMap("functionMap", functionMap);
 
     int commandNumber = 0;
     do {
@@ -213,11 +233,44 @@ int main() {
         else if (commandType == "C_IF") {
             writer.writeIf(arg1);
         }
+        else if (commandType == "C_FUNCTION") {
+            writer.writeFunction(arg1, arg2);
+        }
+        else if (commandType == "C_CALL") {
+            writer.writeCall(arg1, arg2);
+        }
+        else if (commandType == "C_RETURN") {
+            writer.writeReturn();
+        }
 
         commandNumber++;
     } while (parser.hasMoreCommands());
 
     vmFile.close();
+}
+
+int main() {
+    // Setup
+    ofstream asmFile(pathName + fileName + ".asm");
+
+    CodeWriter writer(asmFile, fileName);
+
+    assemblyMap("arithmeticMap", arithmeticMap);
+    assemblyMap("functionMap", functionMap);
+    assemblyMap("memoryMap", memoryMap);
+    assemblyMap("flowMap", flowMap);
+
+    // Translate a vm program into an asm file
+    writer.writeInit();
+
+    string programPath = "tests/function/FibonacciElement";
+    for (const auto& entry : fs::directory_iterator(programPath)) {
+        string filePath = entry.path();
+        if (filePath.substr(filePath.size() - 3) == ".vm") {
+            processFile(writer, filePath);
+        }
+    }
+
     asmFile.close();
 
     return 0;
