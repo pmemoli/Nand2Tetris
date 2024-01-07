@@ -1,0 +1,207 @@
+command push constant
+@X
+D=A  // stores constant in D
+@SP
+A=M
+M=D  // sets ram[SP VALUE] to constant
+@SP
+M=M+1  // increses SP value by one
+
+command push local
+@X
+D=A  // stores x in D
+@LCL
+A=M+D 
+D=M  // stores ram[local + x] in D
+@SP
+A=M
+M=D  // sets ram[sp value] to D
+@SP
+M=M+1  // increases sp value by one
+
+command pop local
+@X
+D=A  // stores x in D
+@LCL
+D=M+D  // stores local + x address in D 
+@R13
+M=D  // stores local + x in ram[13]
+@SP
+AM=M-1
+D=M  // decreases sp and saves ram[spval] to D
+@R13
+A=M
+M=D  // pushes top of stack to ram[local + x]
+
+command push local
+@X
+D=A  // stores x in D
+@LCL
+A=M+D 
+D=M  // stores ram[local + x] in D
+@SP
+A=M
+M=D  // sets ram[sp value] to D
+@SP
+M=M+1  // increases sp value by one
+
+command pop local
+@X
+D=A  // stores x in D
+@LCL
+D=M+D  // stores local + x address in D 
+@R13
+M=D  // stores local + x in ram[13]
+@SP
+AM=M-1
+D=M  // decreases sp and saves ram[spval] to D
+@R13
+A=M
+M=D  // pushes top of stack to ram[local + x]
+
+command push argument
+@X
+D=A  // stores x in D
+@ARG
+A=M+D 
+D=M  // stores ram[argument + x] in D
+@SP
+A=M
+M=D  // sets ram[sp value] to D
+@SP
+M=M+1  // increases sp value by one
+
+command pop argument
+@X
+D=A  // stores x in D
+@ARG
+D=M+D  // stores arg + x address in D 
+@R13
+M=D  // stores arg + x in ram[13]
+@SP
+AM=M-1
+D=M  // decreases sp and saves ram[spval] to D
+@R13
+A=M
+M=D  // pushes top of stack to ram[arg + x]
+
+command push this
+@X
+D=A  // stores x in D
+@THIS
+A=M+D 
+D=M  // stores ram[this + x] in D
+@SP
+A=M
+M=D  // sets ram[sp value] to D
+@SP
+M=M+1  // increases sp value by one
+
+command pop this
+@X
+D=A  // stores x in D
+@THIS
+D=M+D  // stores this + x address in D 
+@R13
+M=D  // stores this + x in ram[13]
+@SP
+AM=M-1
+D=M  // decreases sp and saves ram[spval] to D
+@R13
+A=M
+M=D  // pushes top of stack to ram[this + x]
+
+command push that
+@X
+D=A  // stores x in D
+@THAT
+A=M+D 
+D=M  // stores ram[that + x] in D
+@SP
+A=M
+M=D  // sets ram[sp value] to D
+@SP
+M=M+1  // increases sp value by one
+
+command pop that
+@X
+D=A  // stores x in D
+@THAT
+D=M+D  // stores that + x address in D 
+@R13
+M=D  // stores that + x in ram[13]
+@SP
+AM=M-1
+D=M  // decreases sp and saves ram[spval] to D
+@R13
+A=M
+M=D  // pushes top of stack to ram[that + x]
+
+command push pointer
+@X
+D=A  // stores x in D
+@3
+A=A+D
+D=M  // stores 3 + x in D
+@SP
+A=M
+M=D  // sets ram[sp value] to D
+@SP
+M=M+1  // increases sp value by one
+
+command pop pointer
+@X
+D=A  // stores x in D
+@3
+D=A+D  // stores 3 + x address in D 
+@R13
+M=D  // stores 3 + x in ram[13]
+@SP
+AM=M-1
+D=M  // decreases sp and saves the top of the stack to D
+@R13
+A=M
+M=D  // pushes top of stack to ram[pointer + x]
+
+command push temp
+@X
+D=A  // stores x in D
+@5
+A=M+D 
+D=M  // stores ram[temp + x] in D
+@SP
+A=M
+M=D  // sets ram[sp value] to D
+@SP
+M=M+1  // increases sp value by one
+
+command pop temp
+@X
+D=A  // stores x in D
+@5
+D=M+D  // stores temp + x address in D 
+@R13
+M=D  // stores temp + x in ram[13]
+@SP
+AM=M-1
+D=M  // decreases sp and saves ram[spval] to D
+@R13
+A=M
+M=D  // pushes top of stack to ram[temp + x]
+
+command push static
+@Xxx.X
+D=M  // stores the static X value in D 
+@SP
+A=M
+M=D  // sets ram[sp value] to D
+@SP
+M=M+1  // increases sp value by one
+
+command pop static
+@SP
+AM=M-1
+D=M  // decreases sp and saves ram[spval] to D
+@Xxx.X
+M=D  // pushes top of stack to ram[static + x]
+

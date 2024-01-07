@@ -1,0 +1,14 @@
+command label
+(label)
+
+command goto
+@label
+0;JMP
+
+command if-goto
+@SP
+AM=M-1
+D=M
+@label
+D;JNE
+

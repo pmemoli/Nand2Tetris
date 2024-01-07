@@ -1,0 +1,112 @@
+Stack Machine Specification:
+
+A stack machine consists of a STACK and a Memory. It can execute VM programs which are organized into 'functions' that are made of sequences of 4 possible commands:
+
+- Arithmetic 
+- Memory access
+- Program flow
+- Function calling
+
+Each VM command is specified in the VM language as:
+command (add), command arg (goto loop), command arg1 arg2 (push local 3)
+
+Arithmetic Commands:
+There are 9 arithmetic and logical commands, 7 binary and 2 unary. They pop the operands from the top of the stacks and push their specified operation.
+
+Memory Access Commands:
+There are two possible commands, push segment index (pushes value of segment[index] to stack) and pop segment index (pops the top stack value to segment[index]). There are 8 memory segments associated with different variable semantics.
+
+
+Stack Machine Implementation:
+
+The stack machine can be implemented thorugh:
+
+- Mapping the structure of the VM (stack and memory) on the target platform.
+- Providing a translator that converts VM commands into target platform commands that operate on the mapped structure. 
+
+The translator implements the structure of the VM in the target platform and translates the instructions of a program into hack assembly operating on the emulated vm.
+
+The resulting code acts as an implementation of the VM and a specific VM program on the target platform.
+
+Mapping:
+
+    0-15 Sixteen Virtual Registers
+    16-255 Static Variables
+    256-2047 Stack
+    2048-16483 Heap (Memory of the VM)
+    16384-24575 Memory mapped I/O
+
+The 0-15 registers map as follows:
+
+    0 SP Points to the topmost location in the stack
+    1 LCL Points to the base of the current VM function LOCAL segment
+    2 ARG Points to the base of the current VM function ARGUMENT segment
+    3 THIS Points to the base of the THIS segment
+    4 THAT Points to the base of the THAT segment
+
+    5-12 Holds contents of TEMP segment
+    13-15 General purpose registers
+
+Program Flow:
+
+It extends the VM functionality to allow for jumps within the program. It is implemented throgh the following commands:
+
+- label label: It labels the current location of the functions code
+    It can be implemented through:
+
+    (label)
+
+- goto label: It effects an unconditional jump operation to the location in the programed marked by label
+    It can be implemented through using simple jump commands:
+
+    @label
+    0;JMP
+
+- if-goto label: It effects a conditional jump operation based on the top-most value of the stack -which is popped-. 
+    It can be implemented through:
+
+    @SP
+    A=M
+    M=D
+
+    @label
+    D;JEQ
+    
+
+Subroutine calling:
+
+The VM functionality is extended to having functions through:
+
+- function f n: Starts the code of a function f with n local variables.
+
+    (f)
+        PUSH 0 (n times)
+
+- call f m: Calls a function f stating that it needs m arguments (pushed to the stack)
+
+    push return-address  // pushes return address defined at the end of the function
+    push LCL  // save lcl of calling function
+    push ARG  // save arg of calling function
+    push THIS  // save this of calling function
+    push THAT  // save that of calling function
+    ARG=SP-n-5  // Repositions ARG pointer
+    LCL=SP    // Repositions LCL
+    goto f   // runs F
+    (return-address)
+
+The idea is to simulate a unique stack and segments for the function independent of the callinler.
+
+- return: returns to the calling routine
+
+    FRAME = LCL
+    RET = *(FRAME-5)  // saves return address to a temp var.
+    *ARG = pop()  // sets the topmost value in the stack to the start of the argument segment
+    SP = ARG + 1
+    RESTORING POINTERS 
+    goto RET
+
+Bootstrap code:
+    
+    SP=256
+    call Sys.init
+
